@@ -21,14 +21,15 @@ int main() {
     int a = 50;              // variable 'a' inicializada a 50 en el hilo principal
     int b = 0;               // variable 'b' que se actualizará dentro del bucle paralelo
 
-    /* 
-     * Paraleliza el bucle for con OpenMP.
-    - private(i): cada hilo tiene su propia copia de 'i' (correcto para índices).
-   - private(a): cada hilo obtiene una copia no inicializada de 'a' .
-   - private(b): cada hilo obtiene su propia copia no compartida de 'b'; las escrituras a b
-     dentro del bucle afectan solo a la copia del hilo, no a la variable 'b' del hilo maestro.
-     Al salir de la región paralela el valor original de 'b' queda indeterminado (no se garantiza 1049).*/
-    #pragma omp parallel for private(i) private(a) private(b)
+/* 
+ * Paraleliza el bucle for con OpenMP.
+ * - private(i): cada hilo tiene su propia copia de 'i' (correcto para índices).
+ * - private(a): cada hilo obtiene una copia no inicializada de 'a'.
+ * - lastprivate(b): al final del bucle, la copia privada de 'b' usada en 
+ *                   la última iteración (i = N-1) se asigna a la variable 'b' global.
+ */
+
+    #pragma omp parallel for private(i) private(a) lastprivate(b)
     for (i = 0; i < N; i++) {
         b = a + i;            // asigna b usando la copia privada de 'a'.
     }
@@ -38,4 +39,5 @@ int main() {
      */
     printf("a = %d b = %d (Se espera a = 50 b = 1049)\n", a, b);
     return 0;
+
 }
